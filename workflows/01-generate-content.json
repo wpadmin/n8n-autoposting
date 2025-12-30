@@ -1,0 +1,280 @@
+{
+  "name": "01 - Generate Content",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "0d2926fd-69e5-4525-9b5d-ccc0d5889b1d",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "W70iArKpt0yBmYMj",
+          "mode": "list",
+          "cachedResultName": "posts",
+          "cachedResultUrl": "/projects/Ll8ngrGzH0XwolFq/datatables/W70iArKpt0yBmYMj"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "keyValue": "idea"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "a588f7c3-46a5-4385-b86d-d6cc7a6b13ca",
+      "name": "Get Topic",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "{{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists"
+              },
+              "id": "e2f28eed-f176-4b15-8839-e21bcc2aebe8"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "beda8789-32fb-43db-9c60-ca8b3266d197",
+      "name": "If Topic Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "id"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Ты — эксперт по контенту для социальных сетей. Пишешь посты на русском языке. Посты должны быть информативными, полезными и вовлекающими. Длина: 500-1000 символов. Без хештегов. Стиль: дружелюбный, экспертный.",
+              "role": "system"
+            },
+            {
+              "content": "=Напиши пост для социальных сетей на тему: {{ $json.topic }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fedff8e5-7380-4a19-ba9c-45f5ed99dd03",
+      "name": "Generate Post",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "okUbuqBwGSbAMWld",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "W70iArKpt0yBmYMj",
+          "mode": "list",
+          "cachedResultName": "posts",
+          "cachedResultUrl": "/projects/Ll8ngrGzH0XwolFq/datatables/W70iArKpt0yBmYMj"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Get Topic').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "content": "={{ $json.message.content }}",
+            "status": "draft"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approved",
+              "displayName": "approved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "944a6c85-de42-4bb9-92b9-4d14409ab851",
+      "name": "Save Draft",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "32818c0f-57e2-4e2f-828f-0d309d5bfebd",
+      "name": "No Topics",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        208
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Topic": {
+      "main": [
+        [
+          {
+            "node": "If Topic Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Topic Exists": {
+      "main": [
+        [
+          {
+            "node": "Generate Post",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Topics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Post": {
+      "main": [
+        [
+          {
+            "node": "Save Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ea6d19d6-7bcf-447d-9f77-fc642217c6c6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "45d3e26188072fe45674a169496669379e4803737f64d9ec882e66a6a38ec4de"
+  },
+  "id": "yQDmdPwkdUMlXJM2",
+  "tags": []
+}
