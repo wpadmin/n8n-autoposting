@@ -1,0 +1,266 @@
+{
+  "name": "02 - Publish Posts",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "a76ab17b-ea19-42f2-9a39-d1c078863f7c",
+      "name": "Check Every 5min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "-1001195905179",
+        "text": "={{ $json.content }}",
+        "additionalFields": {}
+      },
+      "id": "7f98e0a3-4c67-444b-b5c3-823c4aa36a50",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1760,
+        -672
+      ],
+      "webhookId": "f86235b9-6657-43c0-866b-990ab09db3fa",
+      "credentials": {
+        "telegramApi": {
+          "id": "PPaD46yx2pAWWJkm",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "9109ae03-4f42-49ac-a09d-86910f3e8793",
+      "name": "No Approved Posts",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "W70iArKpt0yBmYMj",
+          "mode": "list",
+          "cachedResultName": "posts",
+          "cachedResultUrl": "/projects/Ll8ngrGzH0XwolFq/datatables/W70iArKpt0yBmYMj"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "keyValue": "draft"
+            },
+            {
+              "keyName": "approved",
+              "condition": "isTrue"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        -512
+      ],
+      "id": "202225f2-ac9d-4db2-9148-8395e56eaa73",
+      "name": "Get Approved Post"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8c045970-6a0d-4c90-b098-0137fb2ec85a",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1504,
+        -512
+      ],
+      "id": "c5241cd1-123e-41f1-9cc3-7261bd0ae191",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "W70iArKpt0yBmYMj",
+          "mode": "list"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Get Approved Post').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "approved": false,
+            "status": "published"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approved",
+              "displayName": "approved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1968,
+        -672
+      ],
+      "id": "249916ec-7751-4ab4-8d9f-e1d0483b3a7e",
+      "name": "Mark Published"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Check Every 5min": {
+      "main": [
+        [
+          {
+            "node": "Get Approved Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Approved Post": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Approved Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Telegram": {
+      "main": [
+        [
+          {
+            "node": "Mark Published",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0a8fcce5-5bcb-4f2f-a848-9d17022fcc14",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "45d3e26188072fe45674a169496669379e4803737f64d9ec882e66a6a38ec4de"
+  },
+  "id": "l4pLE0ARCCafRyo3",
+  "tags": []
+}
